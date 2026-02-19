@@ -1,48 +1,56 @@
 [
   {
+    "id": "stripe",
+    "name": "Stripe",
+    "industry": "Fintech",
+    "stage": "Public",
+    "location": "San Francisco, USA",
+    "website": "https://stripe.com",
+    "description": "Financial infrastructure platform for payments, billing, and global commerce."
+  },
+  {
+    "id": "notion",
+    "name": "Notion",
+    "industry": "Productivity",
+    "stage": "Growth",
+    "location": "San Francisco, USA",
+    "website": "https://notion.so",
+    "description": "All-in-one workspace for docs, wikis, projects, and team collaboration."
+  },
+  {
+    "id": "airtable",
+    "name": "Airtable",
+    "industry": "SaaS",
+    "stage": "Growth",
+    "location": "San Francisco, USA",
+    "website": "https://airtable.com",
+    "description": "Cloud collaboration platform combining spreadsheet simplicity with database power."
+  },
+  {
+    "id": "posthog",
+    "name": "PostHog",
+    "industry": "Analytics",
+    "stage": "Series B",
+    "location": "London, UK",
+    "website": "https://posthog.com",
+    "description": "Product analytics, feature flags, session replay and experimentation tools."
+  },
+  {
+    "id": "vercel",
+    "name": "Vercel",
+    "industry": "Developer Tools",
+    "stage": "Growth",
+    "location": "San Francisco, USA",
+    "website": "https://vercel.com",
+    "description": "Cloud platform for frontend developers enabling fast deployment and edge delivery."
+  },
+  {
     "id": "acme-ai",
     "name": "Acme AI",
-    "website": "https://example.com",
     "industry": "AI",
     "stage": "Seed",
     "location": "Bengaluru, India",
+    "website": "https://stripe.com",
     "description": "AI copilots for customer support teams."
-  },
-  {
-    "id": "finpilot",
-    "name": "FinPilot",
-    "website": "https://example.com",
-    "industry": "Fintech",
-    "stage": "Series A",
-    "location": "Mumbai, India",
-    "description": "Automated cashflow and invoicing for SMBs."
-  },
-  {
-    "id": "secureshield",
-    "name": "SecureShield",
-    "website": "https://example.com",
-    "industry": "Security",
-    "stage": "Pre-seed",
-    "location": "Pune, India",
-    "description": "Continuous security posture checks for small cloud teams."
-  },
-  {
-    "id": "healthgrid",
-    "name": "HealthGrid",
-    "website": "https://example.com",
-    "industry": "HealthTech",
-    "stage": "Seed",
-    "location": "Hyderabad, India",
-    "description": "Clinic operations automation and patient engagement."
-  },
-  {
-  "id": "google",
-  "name": "Google",
-  "industry": "AI",
-  "stage": "Public",
-  "location": "Mountain View, USA",
-  "website": "https://www.google.com",
-  "description": "Search, advertising, cloud, and AI products."
-}
-
+  }
 ]
