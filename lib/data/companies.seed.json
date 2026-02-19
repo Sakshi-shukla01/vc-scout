@@ -1,0 +1,48 @@
+[
+  {
+    "id": "acme-ai",
+    "name": "Acme AI",
+    "website": "https://example.com",
+    "industry": "AI",
+    "stage": "Seed",
+    "location": "Bengaluru, India",
+    "description": "AI copilots for customer support teams."
+  },
+  {
+    "id": "finpilot",
+    "name": "FinPilot",
+    "website": "https://example.com",
+    "industry": "Fintech",
+    "stage": "Series A",
+    "location": "Mumbai, India",
+    "description": "Automated cashflow and invoicing for SMBs."
+  },
+  {
+    "id": "secureshield",
+    "name": "SecureShield",
+    "website": "https://example.com",
+    "industry": "Security",
+    "stage": "Pre-seed",
+    "location": "Pune, India",
+    "description": "Continuous security posture checks for small cloud teams."
+  },
+  {
+    "id": "healthgrid",
+    "name": "HealthGrid",
+    "website": "https://example.com",
+    "industry": "HealthTech",
+    "stage": "Seed",
+    "location": "Hyderabad, India",
+    "description": "Clinic operations automation and patient engagement."
+  },
+  {
+  "id": "google",
+  "name": "Google",
+  "industry": "AI",
+  "stage": "Public",
+  "location": "Mountain View, USA",
+  "website": "https://www.google.com",
+  "description": "Search, advertising, cloud, and AI products."
+}
+
+]

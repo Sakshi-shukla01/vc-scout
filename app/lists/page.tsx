@@ -1,0 +1,136 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import companiesSeed from "@/lib/data/companies.seed.json";
+import type { Company } from "@/lib/types";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { getLists, saveLists, type VCList } from "@/lib/storage";
+
+export default function ListsPage() {
+  const companies = companiesSeed as Company[];
+
+  const [lists, setLists] = useState<VCList[]>([]);
+  const [name, setName] = useState("");
+
+  useEffect(() => {
+    setLists(getLists());
+  }, []);
+
+  const createList = () => {
+    const n = name.trim();
+    if (!n) return;
+    const newList: VCList = { id: crypto.randomUUID(), name: n, companyIds: [] };
+    const next = [newList, ...lists];
+    setLists(next);
+    saveLists(next);
+    setName("");
+  };
+
+  const removeList = (id: string) => {
+    const next = lists.filter((l) => l.id !== id);
+    setLists(next);
+    saveLists(next);
+  };
+
+  const exportJSON = (list: VCList) => {
+    const payload = {
+      ...list,
+      companies: list.companyIds
+        .map((cid) => companies.find((c) => c.id === cid))
+        .filter(Boolean),
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${list.name}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // ✅ NEW: Export CSV
+  const exportCSV = (list: VCList) => {
+    const rows = list.companyIds
+      .map((cid) => companies.find((c) => c.id === cid))
+      .filter(Boolean) as Company[];
+
+    const header = ["id", "name", "website", "industry", "stage", "location"];
+
+    const lines = [
+      header.join(","),
+      ...rows.map((c) =>
+        [c.id, c.name, c.website, c.industry, c.stage, c.location]
+          .map((v) => `"${String(v).replace(/"/g, '""')}"`)
+          .join(",")
+      ),
+    ];
+
+    const blob = new Blob([lines.join("\n")], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${list.name}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <div className="space-y-4 max-w-6xl mx-auto">
+      <div>
+        <h1 className="text-xl font-semibold">Lists</h1>
+        <p className="text-sm text-muted-foreground">
+          Create lists, add/remove companies from a company profile, and export lists (CSV/JSON).
+        </p>
+      </div>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex gap-2">
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="New list name..."
+            />
+            <Button onClick={createList}>Create</Button>
+          </div>
+        </CardHeader>
+
+        <CardContent className="space-y-3">
+          {lists.length === 0 ? (
+            <div className="text-sm text-muted-foreground">No lists yet.</div>
+          ) : (
+            lists.map((l) => (
+              <div
+                key={l.id}
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-md border p-3"
+              >
+                <div>
+                  <div className="font-medium text-sm">{l.name}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {l.companyIds.length} companies
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="outline" size="sm" onClick={() => exportCSV(l)}>
+                    Export CSV
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => exportJSON(l)}>
+                    Export JSON
+                  </Button>
+                  <Button variant="destructive" size="sm" onClick={() => removeList(l.id)}>
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            ))
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
