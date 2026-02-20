@@ -1,21 +1,43 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import companiesSeed from "@/lib/data/companies.seed.json";
 import type { Company } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { getLists, saveLists, type VCList } from "@/lib/storage";
+import {
+  getLists,
+  saveLists,
+  type VCList,
+  getCustomCompanies, // ✅ add this
+} from "@/lib/storage";
 
 export default function ListsPage() {
-  const companies = companiesSeed as Company[];
+  const seed = companiesSeed as Company[];
 
-  const [lists, setLists] = useState<VCList[]>([]);
+  // ✅ load custom companies from localStorage
+  const [custom, setCustom] = useState<Company[]>([]);
+  useEffect(() => {
+    const c = (getCustomCompanies() as Company[]) || [];
+    // keep only valid
+    setCustom(
+      c.filter(
+        (x) => x && typeof x.id === "string" && typeof x.name === "string"
+      )
+    );
+  }, []);
+
+  // ✅ merged companies used for exports
+  const companies = useMemo(() => {
+    return [...custom, ...seed];
+  }, [custom, seed]);
+
+  const [lists, setListsState] = useState<VCList[]>([]);
   const [name, setName] = useState("");
 
   useEffect(() => {
-    setLists(getLists());
+    setListsState(getLists());
   }, []);
 
   const createList = () => {
@@ -23,24 +45,28 @@ export default function ListsPage() {
     if (!n) return;
     const newList: VCList = { id: crypto.randomUUID(), name: n, companyIds: [] };
     const next = [newList, ...lists];
-    setLists(next);
+    setListsState(next);
     saveLists(next);
     setName("");
   };
 
   const removeList = (id: string) => {
     const next = lists.filter((l) => l.id !== id);
-    setLists(next);
+    setListsState(next);
     saveLists(next);
   };
 
   const exportJSON = (list: VCList) => {
+    const rows = list.companyIds
+      .map((cid) => companies.find((c) => c.id === cid))
+      .filter(Boolean) as Company[];
+
     const payload = {
       ...list,
-      companies: list.companyIds
-        .map((cid) => companies.find((c) => c.id === cid))
-        .filter(Boolean),
+      companies: rows,
+      exportedAt: new Date().toISOString(),
     };
+
     const blob = new Blob([JSON.stringify(payload, null, 2)], {
       type: "application/json",
     });
@@ -52,7 +78,7 @@ export default function ListsPage() {
     URL.revokeObjectURL(url);
   };
 
-  // ✅ NEW: Export CSV
+  // ✅ Export CSV (now includes user-added companies too)
   const exportCSV = (list: VCList) => {
     const rows = list.companyIds
       .map((cid) => companies.find((c) => c.id === cid))
@@ -64,7 +90,7 @@ export default function ListsPage() {
       header.join(","),
       ...rows.map((c) =>
         [c.id, c.name, c.website, c.industry, c.stage, c.location]
-          .map((v) => `"${String(v).replace(/"/g, '""')}"`)
+          .map((v) => `"${String(v ?? "").replace(/"/g, '""')}"`)
           .join(",")
       ),
     ];
