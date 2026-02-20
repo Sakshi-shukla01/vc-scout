@@ -10,7 +10,7 @@ import {
   getLists,
   saveLists,
   type VCList,
-  getCustomCompanies, // ✅ add this
+  getCustomCompanies,
 } from "@/lib/storage";
 
 export default function ListsPage() {
@@ -20,10 +20,13 @@ export default function ListsPage() {
   const [custom, setCustom] = useState<Company[]>([]);
   useEffect(() => {
     const c = (getCustomCompanies() as Company[]) || [];
-    // keep only valid
     setCustom(
       c.filter(
-        (x) => x && typeof x.id === "string" && typeof x.name === "string"
+        (x) =>
+          x &&
+          typeof x.id === "string" &&
+          typeof x.name === "string" &&
+          typeof x.website === "string"
       )
     );
   }, []);
@@ -33,11 +36,42 @@ export default function ListsPage() {
     return [...custom, ...seed];
   }, [custom, seed]);
 
+  // ✅ fast lookup by id
+  const companyById = useMemo(() => {
+    const map = new Map<string, Company>();
+    for (const c of companies) map.set(c.id, c);
+    return map;
+  }, [companies]);
+
   const [lists, setListsState] = useState<VCList[]>([]);
   const [name, setName] = useState("");
 
-  useEffect(() => {
+  const loadLists = () => {
     setListsState(getLists());
+  };
+
+  useEffect(() => {
+    loadLists();
+
+    // optional: keep in sync if other tab changes localStorage
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "vc_lists") loadLists();
+      if (e.key === "vc_custom_companies") {
+        const c = (getCustomCompanies() as Company[]) || [];
+        setCustom(
+          c.filter(
+            (x) =>
+              x &&
+              typeof x.id === "string" &&
+              typeof x.name === "string" &&
+              typeof x.website === "string"
+          )
+        );
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const createList = () => {
@@ -58,13 +92,16 @@ export default function ListsPage() {
 
   const exportJSON = (list: VCList) => {
     const rows = list.companyIds
-      .map((cid) => companies.find((c) => c.id === cid))
+      .map((cid) => companyById.get(cid))
       .filter(Boolean) as Company[];
+
+    const missing = list.companyIds.filter((cid) => !companyById.get(cid));
 
     const payload = {
       ...list,
       companies: rows,
       exportedAt: new Date().toISOString(),
+      missingCompanyIds: missing, // helps debug if anything not found
     };
 
     const blob = new Blob([JSON.stringify(payload, null, 2)], {
@@ -78,10 +115,9 @@ export default function ListsPage() {
     URL.revokeObjectURL(url);
   };
 
-  // ✅ Export CSV (now includes user-added companies too)
   const exportCSV = (list: VCList) => {
     const rows = list.companyIds
-      .map((cid) => companies.find((c) => c.id === cid))
+      .map((cid) => companyById.get(cid))
       .filter(Boolean) as Company[];
 
     const header = ["id", "name", "website", "industry", "stage", "location"];
@@ -111,6 +147,11 @@ export default function ListsPage() {
         <p className="text-sm text-muted-foreground">
           Create lists, add/remove companies from a company profile, and export lists (CSV/JSON).
         </p>
+
+        {/* ✅ Debug indicator (keeps you sane on Vercel) */}
+        <div className="text-xs text-muted-foreground mt-1">
+          Custom companies loaded: {custom.length}
+        </div>
       </div>
 
       <Card>
@@ -142,13 +183,25 @@ export default function ListsPage() {
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                  <Button variant="outline" size="sm" onClick={() => exportCSV(l)}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => exportCSV(l)}
+                  >
                     Export CSV
                   </Button>
-                  <Button variant="outline" size="sm" onClick={() => exportJSON(l)}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => exportJSON(l)}
+                  >
                     Export JSON
                   </Button>
-                  <Button variant="destructive" size="sm" onClick={() => removeList(l.id)}>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => removeList(l.id)}
+                  >
                     Delete
                   </Button>
                 </div>
